@@ -1,0 +1,25 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.10
+    environment:
+      # Local learning setup: allow the passwordless `default` user over the network
+      # so the web UI at http://localhost:8123/play works. Ports bind to localhost only.
+      CLICKHOUSE_SKIP_USER_SETUP: 1
+    ports:
+      - "127.0.0.1:8123:8123" # HTTP interface + /play web UI
+      - "127.0.0.1:9000:9000" # native protocol (clickhouse-client, drivers)
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  clickhouse-data:
